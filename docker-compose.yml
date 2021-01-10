@@ -1,0 +1,48 @@
+version: '3'
+services:
+
+  #PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: digitalocean.com/php
+    container_name: gam_app
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: gam_app
+      SERVICE_TAGS: dev
+    working_dir: /app/shared/docroots/adops_dfp_coordinator
+    volumes:
+        - ../adops_dfp_coordinator/:/app/shared/docroots/adops_dfp_coordinator/
+        - ../config/:/app/shared/docroots/config/
+        - ./php/local.ini:/user/local/etc/php/conf.d/local.ini
+    networks:
+      - gam-network
+
+  #MySQL Service
+  db:
+    image: mysql:5.6
+    container_name: gam_db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      - "MYSQL_DATABASE=laravel"
+      - "MYSQL_ROOT_PASSWORD=secret"
+    volumes:
+        - dbdata:/var/lib/mysql
+        - ./mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - gam-network
+
+#Docker Networks
+networks:
+  gam-network:
+    driver: bridge
+
+#Volumes
+volumes:
+    dbdata:
+        driver: local
